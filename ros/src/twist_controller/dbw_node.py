@@ -53,7 +53,7 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1) # brake command in N*m
 
-# TODO: Create `Controller` object of arguments we want to provide through ROS interface
+# TODO: Create `Controller` object of arguments we want to provide through ROS interface -> These parameters get passed to controller defined in class defined in twist_controller.py
         self.controller = Controller(vehicle_mass=vehicle_mass,
                                      fuel_capacity=fuel_capacity,
                                      brake_deadband=brake_deadband,
