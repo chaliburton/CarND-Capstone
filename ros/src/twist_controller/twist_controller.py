@@ -9,7 +9,7 @@ ONE_MPH = 0.44704
 
 class Controller(object):
 # Brought arguments in from dbw_node definition for declaration of input parameters in __init__ function
-    def __init__(self,vehicle_mass, fuel_capacity, brake_deadband, decel_limit, accel_limit, wheel_radius,
+    def __init__(self, vehicle_mass, fuel_capacity, brake_deadband, decel_limit, accel_limit, wheel_radius,
                  wheel_base, steer_ratio, max_lat_accel, max_steer_angle):
         
 # Yaw controller is provided, in yaw_controller.py, but need to pass it the arguments it expects
@@ -40,6 +40,8 @@ class Controller(object):
         self.accel_limit = accel_limit
         self.wheel_radius = wheel_radius
         self.last_time = rospy.get_time()
+        self.last_vel = 0.0
+
 
 # define controller function using inputs, called in dbw_node.py (if updated need to modify in both )
     def control(self, current_vel, dbw_enabled, linear_vel, angular_vel):
@@ -50,6 +52,13 @@ class Controller(object):
         current_vel = self.vel_lpf.filt(current_vel)
         
 # code walkthrough has # rospy.logwarn outputs to check velocity
+        #rospy.logwarn("Angular vel: {0}" .format(angular_vel))
+        #rospy.logwarn("Target Velocity: {0}" .format(linear_vel))
+#        rospy.logwarn("Target Angular Velocity: {0}\n" .format(angular_vel))
+        #rospy.logwarn("Current Velocity: {0}" .format(current_vel))
+        #rospy.logwarn("Filtered Velocity: {0}" .format(self.vel_lpf.get()))
+        
+        
 
 # update steering controller
         steering = self.yaw_controller.get_steering(linear_vel, angular_vel, current_vel)
@@ -66,14 +75,16 @@ class Controller(object):
 # Will most likely need to update the brake based on future inputs (lights, obstacles etc)
 # note at 10:00 there is a discussion about the outerware wrapper not updating fast enough and the waypoint follower code might need to be updated more frequently (currently might wait 
 # until the waypoint is passed to adjust target angle  check this 
-        brake = 0
+        brake = 0.0
     
         if linear_vel == 0.0 and current_vel < 0.1:
-            throttle = 0
+            throttle = 0.0
             brake = 400 #N*m - to hold the car in place 
-        elif throttle < 0.1 and vel_error < 0:
-            throttle = 0
+        elif throttle < 0.1 and vel_error < 0.0:
+            throttle = 0.0
             decel = max(vel_error, self.decel_limit)
             brake = abs(decel)*self.vehicle_mass*self.wheel_radius # Torque in N*m
+        
+        rospy.logwarn("steering Angle is: {0}" . format(steering))
         
         return throttle, brake, steering
