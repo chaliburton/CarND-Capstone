@@ -94,7 +94,7 @@ class WaypointUpdater(object):
             # rospy.logwarn("no red light detected") #rospy.logwarn("Filtered Velocity: {0}" .format(self.vel_lpf.get())) # format for data
 
         else:
-            rospy.logwarn("decelerate to 0") #rospy.logwarn("Filtered Velocity: {0}" .format(self.vel_lpf.get())) # format for data
+            # rospy.logwarn("decelerate to 0") #rospy.logwarn("Filtered Velocity: {0}" .format(self.vel_lpf.get())) # format for data
             lane.waypoints = self.decelerate_waypoints(base_waypoints, closest_idx) # call decelerate_waypoints function to ramp speed to zero
         return lane
             
