@@ -85,6 +85,6 @@ class Controller(object):
             decel = max(vel_error, self.decel_limit)
             brake = abs(decel)*self.vehicle_mass*self.wheel_radius # Torque in N*m
         
-        rospy.logwarn("steering Angle is: {0}" . format(steering))
+        # rospy.logwarn("steering Angle is: {0}" . format(steering))
         
         return throttle, brake, steering

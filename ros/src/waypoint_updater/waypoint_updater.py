@@ -5,10 +5,11 @@ from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Int32
 from styx_msgs.msg import Lane, Waypoint
 from scipy.spatial import KDTree
+import yaml
 
 import math
 MAX_DECEL = 1.0
-FREQUENCY = 10 #50 Hz for Carla, 10Hz for desktop
+FREQUENCY = 30 #50 Hz for Carla, 10Hz for desktop
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
 
 
@@ -37,6 +38,9 @@ class WaypointUpdater(object):
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
+        config_string = rospy.get_param("/params_config")
+        self.config = yaml.load(config_string)
+
         # TODO: Add other member variables you need below
         self.pose = None
         self.base_lane = None
@@ -48,7 +52,8 @@ class WaypointUpdater(object):
         self.loop()   # //rospy.spin()
 
     def loop(self):
-        rate = rospy.Rate(FREQUENCY)##updated from 50 to now be variable
+        waypoint_updater_frequency = self.config["waypoints_updater"]["frequency"]
+        rate = rospy.Rate(waypoint_updater_frequency)##updated from 50 to now be variable
         while not rospy.is_shutdown():
             if self.pose and self.base_lane and self.stopline_wp_idx:               # added to ensure three messages are brought in from subscritopns
                 self.publish_waypoints()
@@ -86,10 +91,10 @@ class WaypointUpdater(object):
         
         if self.stopline_wp_idx == -1 or (self.stopline_wp_idx >= farthest_idx):    # if there is no stoplight in range ahead or it is permissive state leave waypoints as is
             lane.waypoints = base_waypoints                                         # populate lane with base_waypoints (don't overwrite base_waypoints)
-            rospy.logwarn("no red light detected") #rospy.logwarn("Filtered Velocity: {0}" .format(self.vel_lpf.get())) # format for data
+            # rospy.logwarn("no red light detected") #rospy.logwarn("Filtered Velocity: {0}" .format(self.vel_lpf.get())) # format for data
 
         else:
-            rospy.logwarn("decelerate to 0") #rospy.logwarn("Filtered Velocity: {0}" .format(self.vel_lpf.get())) # format for data
+            # rospy.logwarn("decelerate to 0") #rospy.logwarn("Filtered Velocity: {0}" .format(self.vel_lpf.get())) # format for data
             lane.waypoints = self.decelerate_waypoints(base_waypoints, closest_idx) # call decelerate_waypoints function to ramp speed to zero
         return lane
             
@@ -115,7 +120,8 @@ class WaypointUpdater(object):
         self.base_lane = waypoints
         if not self.waypoints_2d:
             self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in waypoints.waypoints]
-            self.waypoint_tree = KDTree(self.waypoints_2d)
+            rospy.loginfo('Constructing waypoint tree')
+            self.waypoint_tree = KDTree(self.waypoints_2d)            
   
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
