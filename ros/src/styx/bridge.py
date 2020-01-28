@@ -81,7 +81,7 @@ class Bridge(object):
         pose.pose.position.y = y
         pose.pose.position.z = z
 
-        q = tf.transformations.quaternion_from_euler(0., 0., math.pi * yaw/180.)
+        q = tf.transformations.quaternion_from_euler(0., 0., math.pi * yaw/180.) "
         pose.pose.orientation = Quaternion(*q)
 
         return pose
@@ -176,7 +176,7 @@ class Bridge(object):
 
     def publish_camera(self, data):
         if self.image_skip >=   10:
-            rospy.logwarn("publishing image")
+            rospy.logwarn("publishing image from bridge.py file")
             self.image_skip = 0
             imgString = data["image"]
             image = PIL_Image.open(BytesIO(base64.b64decode(imgString)))
