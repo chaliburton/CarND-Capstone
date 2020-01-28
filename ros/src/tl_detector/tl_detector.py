@@ -13,6 +13,7 @@ from scipy.spatial import KDTree
 import yaml
 
 STATE_COUNT_THRESHOLD = 3
+CAMERA_IMAGE_COUNT_THRESHOLD = 4
 
 class TLDetector(object):
     def __init__(self):
@@ -22,6 +23,7 @@ class TLDetector(object):
         self.waypoints = None
         self.waypoints_2d = None
         self.camera_image = None
+        self.camera_image_count = 0
         self.lights = []
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
@@ -74,6 +76,13 @@ class TLDetector(object):
             msg (Image): image from car-mounted camera
 
         """
+        # process/classify every CAMERA_IMAGE_COUNT_THRESHOLD image to address latency issues
+        if self.camera_image_count < CAMERA_IMAGE_COUNT_THRESHOLD:
+            self.camera_image_count += 1
+            pass
+        else:
+            self.camera_image_count = 0
+
         self.has_image = True
         self.camera_image = msg
         light_wp, state = self.process_traffic_lights()

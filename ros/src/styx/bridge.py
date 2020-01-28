@@ -175,8 +175,8 @@ class Bridge(object):
         self.publishers['dbw_status'].publish(Bool(data))
 
     def publish_camera(self, data):
-        if self.image_skip >=50:
-            rospy.logwarn("publishing image")
+        if self.image_skip >= 3:
+            # rospy.logwarn("publishing image")
             self.image_skip = 0
             imgString = data["image"]
             image = PIL_Image.open(BytesIO(base64.b64decode(imgString)))
