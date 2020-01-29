@@ -18,14 +18,21 @@ class Controller(object):
 
     
 # Setup parameters for throttle controller        
-        kp = 0.3
-        ki = 0.1
-        kd = 0.0
+        kp = 0.4
+        ki = 0.2
+        kd = 0.3
         mn = 0.0 # minimum throttle value
-        mx = 0.2 # maximum throttle value
+        mx = 0.5 # maximum throttle value
+        # Brake PID
+        b_kp = 200.0
+        b_ki = 0.1
+        b_kd = 5.0
+        b_mn = 0.0 # minimum brake value
+        b_mx = 3250.0 # maximum brake value
 # Initialize throttle controller by passing values to pid.py -> def __init__(self, kp, ki, kd, mn=MIN_NUM, mx=MAX_NUM):
 # important to note function for resetting integral error to zero: def reset(self):
         self.throttle_controller = PID(kp, ki, kd, mn, mx)
+        self.brake_controller = PID(b_kp, b_ki, b_kd, b_mn, b_mx)
 
 # Initialize instance of low pass filter __init__(self, tau, ts):
         tau = 0.5 # 1 / 2pi*tau = cutoff frequency 1 /pi hz
@@ -41,13 +48,14 @@ class Controller(object):
         self.wheel_radius = wheel_radius
         self.last_time = rospy.get_time()
         self.last_vel = 0.0
-
+        self.last_brake = 0.0
 
 # define controller function using inputs, called in dbw_node.py (if updated need to modify in both )
     def control(self, current_vel, dbw_enabled, linear_vel, angular_vel):
 # setup such that if DBW node is disabled that the controller is not active and return all 0's
         if not dbw_enabled:
             self.throttle_controller.reset()
+            self.brake_controller.reset()
             return 0.0 , 0.0 , 0.0
         current_vel = self.vel_lpf.filt(current_vel)
         
@@ -77,14 +85,17 @@ class Controller(object):
 # until the waypoint is passed to adjust target angle  check this 
         brake = 0.0
     
-        if linear_vel == 0.0 and current_vel < 0.1:
+        if linear_vel == 0.0 and current_vel < 5.0:
+            self.brake_controller.reset()
+            self.throttle_controller.reset()
             throttle = 0.0
-            brake = 400 #N*m - to hold the car in place 
+            brake = min(self.last_brake+30,700) #N*m - to hold the car in place 
         elif throttle < 0.1 and vel_error < 0.0:
             throttle = 0.0
             decel = max(vel_error, self.decel_limit)
-            brake = abs(decel)*self.vehicle_mass*self.wheel_radius # Torque in N*m
-        
+            brake = self.brake_controller.step(-decel, sample_time)
+            #brake = abs(decel)*self.vehicle_mass*self.wheel_radius # Torque in N*m
+        self.last_brake = brake
         # rospy.logwarn("steering Angle is: {0}" . format(steering))
         
         return throttle, brake, steering
