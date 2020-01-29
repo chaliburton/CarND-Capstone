@@ -10,7 +10,7 @@ import yaml
 import math
 MAX_DECEL = 1.0
 FREQUENCY = 30 #50 Hz for Carla, 10Hz for desktop
-LOOKAHEAD_WPS = 50 # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 100 # Number of waypoints we will publish. You can change this number
 
 
 '''
@@ -87,7 +87,6 @@ class WaypointUpdater(object):
         lane = Lane()                                                               # create new lane object for publishing
         closest_idx = self.get_closest_waypoint_idx()                               # get the waypoint index for the closest waypoint in front 
         farthest_idx = closest_idx + LOOKAHEAD_WPS                                  # build new waypoint size of size [WPS]
-        # farthest_idx = closest_idx + (LOOKAHEAD_WPS/2)                                  # build new waypoint size of size [WPS]
         base_waypoints = self.base_lane.waypoints[closest_idx:farthest_idx]         # build array of base_waypoints WPS in size from input
         
         if self.stopline_wp_idx == -1 or (self.stopline_wp_idx >= farthest_idx):    # if there is no stoplight in range ahead or it is permissive state leave waypoints as is
