@@ -81,7 +81,7 @@ class Bridge(object):
         pose.pose.position.y = y
         pose.pose.position.z = z
 
-        q = tf.transformations.quaternion_from_euler(0., 0., math.pi * yaw/180.) "
+        q = tf.transformations.quaternion_from_euler(0., 0., math.pi * yaw/180.)
         pose.pose.orientation = Quaternion(*q)
 
         return pose
