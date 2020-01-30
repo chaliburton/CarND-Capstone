@@ -13,6 +13,7 @@ from scipy.spatial import KDTree
 import yaml
 
 STATE_COUNT_THRESHOLD = 3
+CAMERA_IMAGE_COUNT_THRESHOLD = 4
 
 class TLDetector(object):
     def __init__(self):
@@ -23,6 +24,7 @@ class TLDetector(object):
         self.waypoints_2d = None
         self.waypoint_tree = None
         self.camera_image = None
+        self.camera_image_count = 0
         self.lights = []
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
@@ -103,6 +105,29 @@ class TLDetector(object):
             self.camera_image = msg
             """
 
+    def traffic_cb(self, msg):
+        self.lights = msg.lights
+        self.traffic_lights_aux(msg)
+
+    def image_cb(self, msg):
+        """Identifies red lights in the incoming camera image and publishes the index
+            of the waypoint closest to the red light's stop line to /traffic_waypoint
+
+        Args:
+            msg (Image): image from car-mounted camera
+
+        """
+
+        pass
+        # process/classify every CAMERA_IMAGE_COUNT_THRESHOLD image to address latency issues
+        # if self.camera_image_count < CAMERA_IMAGE_COUNT_THRESHOLD:
+        #     self.camera_image_count += 1
+        #     pass
+        # else:
+        #     self.camera_image_count = 0
+
+        # self.traffic_lights_aux(msg)
+
     def get_closest_waypoint(self, x, y):
         """Identifies the closest path waypoint to the given position
             https://en.wikipedia.org/wiki/Closest_pair_of_points_problem
@@ -114,7 +139,7 @@ class TLDetector(object):
 
         """
 #TODO implement, Object Detector is an object of the vehicle (self, so KD tree should be still in scope)  confirm?
-        if self.waypoint_tree == None:
+        if self.waypoint_tree is None:
             rospy.logwarn("NO waypoint tree")
             return -1
         closest_idx = self.waypoint_tree.query([x,y],1)[1]
@@ -122,7 +147,7 @@ class TLDetector(object):
 
     def get_light_state(self, light):
         # rospy.logwarn("Closest light color is: {0}" . format(light.state))
-        
+
         return light.state
         """  commented out for testing stop/start commands
         Determines the current color of the traffic light
@@ -133,7 +158,7 @@ class TLDetector(object):
         Returns:
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
-        
+
         if(not self.has_image):
             self.prev_light_loc = None
             return False
@@ -159,6 +184,12 @@ class TLDetector(object):
         if(self.pose):
             car_wp_idx = self.get_closest_waypoint(self.pose.pose.position.x , self.pose.pose.position.y)
             if car_wp_idx == -1:
+                return -1, TrafficLight.UNKNOWN
+
+
+        #TODO find the closest visible traffic light (if one exists)
+            if self.waypoints is None:
+                rospy.logwarn("Couldn't process traffic lights due to unavailability of waypoints")
                 return -1, TrafficLight.UNKNOWN
             diff = len(self.waypoints.waypoints)*2
             for i, light in enumerate(self.lights):

@@ -183,6 +183,7 @@ class Bridge(object):
         if sample_time_image >=   1.0:
             self.last_time_image = time_now
             rospy.logwarn("publishing image from bridge.py file")
+
             imgString = data["image"]
             image = PIL_Image.open(BytesIO(base64.b64decode(imgString)))
             image_array = np.asarray(image)
