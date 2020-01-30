@@ -11,7 +11,6 @@ import math
 MAX_DECEL = 1.0
 LOOKAHEAD_WPS = 50 # Number of waypoints we will publish. You can change this number
 
-
 '''
 This node will publish waypoints from the car's current position to some `x` distance ahead.
 
