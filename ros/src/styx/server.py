@@ -14,6 +14,7 @@ from conf import conf
 sio = socketio.Server()
 app = Flask(__name__)
 msgs = []
+lastTime = time.time()
 
 dbw_enable = False
 
@@ -54,10 +55,20 @@ def control(sid, data):
 @sio.on('trafficlights')
 def trafficlights(sid, data):
     bridge.publish_traffic(data)
-
+""" Option #1 """
 @sio.on('image')
 def image(sid, data):
-    bridge.publish_camera(data)
+    global lastTime
+    timeNow = time.time() # this may need to be rospy time?
+    if timeNow - lastTime >= 1.0 :
+       bridge.publish_camera(data) # existing line
+       lastTime = timeNow
+        
+""" Option #2
+@sio.on('image')
+def image(sid, data):
+    bridge.publish_camera(data) # existing line
+"""       
 
 if __name__ == '__main__':
 
