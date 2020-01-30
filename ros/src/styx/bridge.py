@@ -176,7 +176,7 @@ class Bridge(object):
         self.publishers['dbw_status'].publish(Bool(data))
 
     def publish_camera(self, data):
-        # confirm this timestamp matches the data, shouldn't the latency of calling this function may result in undesired behaviour
+        """# confirm this timestamp matches the data, shouldn't the latency of calling this function may result in undesired behaviour
         rospy.logwarn("publishing image from bridge.py file")
         imgString = data["image"]
         image = PIL_Image.open(BytesIO(base64.b64decode(imgString)))
@@ -197,7 +197,7 @@ class Bridge(object):
             image_message = self.bridge.cv2_to_imgmsg(image_array, encoding="rgb8")
             self.publishers['image'].publish(image_message)
         else:
-            pass"""
+            pass
 
     def callback_steering(self, data):
         self.server('steer', data={'steering_angle': str(data.steering_wheel_angle_cmd)})

@@ -55,20 +55,22 @@ def control(sid, data):
 @sio.on('trafficlights')
 def trafficlights(sid, data):
     bridge.publish_traffic(data)
-""" Option #1 """
-@sio.on('image')
+
+# Not using Option #1 causes significant latency
+"""@sio.on('image')
 def image(sid, data):
     global lastTime
     timeNow = time.time() # this may need to be rospy time?
     if timeNow - lastTime >= 1.0 :
        bridge.publish_camera(data) # existing line
        lastTime = timeNow
-        
-""" Option #2
+    else:
+        pass
+"""        
+# USING Option #2
 @sio.on('image')
 def image(sid, data):
     bridge.publish_camera(data) # existing line
-"""       
 
 if __name__ == '__main__':
 

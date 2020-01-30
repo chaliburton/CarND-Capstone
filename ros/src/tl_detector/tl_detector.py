@@ -85,6 +85,13 @@ class TLDetector(object):
             # rospy.loginfo('Constructing waypoint tree')
             self.waypoint_tree = KDTree(self.waypoints_2d)
 
+    #def traffic_lights_aux(self, msg):
+        #self.has_image = True
+        #self.camera_image = msg
+        #light_wp, state = self.process_traffic_lights()
+        #self.upcoming_red_light_pub.publish(Int32(self.last_wp))
+        #self.state_count += 1
+
     def traffic_cb(self, msg):
         self.lights = msg.lights
 
@@ -107,7 +114,7 @@ class TLDetector(object):
 
     def traffic_cb(self, msg):
         self.lights = msg.lights
-        self.traffic_lights_aux(msg)
+        #self.traffic_lights_aux(msg)
 
     def image_cb(self, msg):
         """Identifies red lights in the incoming camera image and publishes the index
