@@ -9,9 +9,7 @@ import yaml
 
 import math
 MAX_DECEL = 1.0
-FREQUENCY = 30 #50 Hz for Carla, 10Hz for desktop
-LOOKAHEAD_WPS = 100 # Number of waypoints we will publish. You can change this number
-
+LOOKAHEAD_WPS = 50 # Number of waypoints we will publish. You can change this number
 
 '''
 This node will publish waypoints from the car's current position to some `x` distance ahead.

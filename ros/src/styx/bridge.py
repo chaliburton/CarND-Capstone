@@ -41,6 +41,7 @@ class Bridge(object):
         rospy.init_node('styx_server')
         self.server = server
         self.vel = 0.
+        self.last_time_image = rospy.get_time()
         self.yaw = None
         self.angular_vel = 0.
         self.bridge = CvBridge()
@@ -175,16 +176,21 @@ class Bridge(object):
         self.publishers['dbw_status'].publish(Bool(data))
 
     def publish_camera(self, data):
-        if self.image_skip >= 0:
-            # rospy.logwarn("publishing image")
-            self.image_skip = 0
+        # confirm this timestamp matches the data, shouldn't the latency of calling this function may result in undesired behaviour
+        time_now = rospy.get_time()
+        sample_time_image = time_now - self.last_time_image
+        
+        if sample_time_image >=   1.0:
+            self.last_time_image = time_now
+            rospy.logwarn("publishing image from bridge.py file")
+
             imgString = data["image"]
             image = PIL_Image.open(BytesIO(base64.b64decode(imgString)))
             image_array = np.asarray(image)
             image_message = self.bridge.cv2_to_imgmsg(image_array, encoding="rgb8")
             self.publishers['image'].publish(image_message)
         else:
-            self.image_skip += 1
+            pass
 
     def callback_steering(self, data):
         self.server('steer', data={'steering_angle': str(data.steering_wheel_angle_cmd)})
