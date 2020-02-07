@@ -22,7 +22,7 @@ class Controller(object):
         ki = 0.2
         kd = 0.3
         mn = 0.0 # minimum throttle value
-        mx = 0.5 # maximum throttle value
+        mx = 0.01 # maximum throttle value #for camera capture
         # Brake PID
         b_kp = 200.0
         b_ki = 0.1
