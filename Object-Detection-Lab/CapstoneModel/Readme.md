@@ -8,12 +8,11 @@ Training code included
 
 Model should be output in TF format
 Suggested by Udacity
-
 * Use Tensorflow
 - Already have model
 - Final model must be in Tensorflow
-
 * Use a detection model and classification model
+
 pro:
 - Avoids to label bounding boxes
 - Simple classification model
@@ -23,12 +22,11 @@ con:
 - Must use two steps/NN
 
 
-
-
 # Usefull links
 https://machinelearningmastery.com/how-to-perform-object-detection-with-yolov3-in-keras/
 
-https://github.com/pierluigiferrari/ssd_keras
+SSD implemented in Keras
+https://github.com/pierluigiferrari/ssd_keras  
 
 https://github.com/affinis-lab/traffic-light-detection-module
 
@@ -51,12 +49,15 @@ https://github.com/tzutalin/labelImg
 
 Diffgram might also have already uploaded datasets on traffic lights from simulator
 
+Annotation tool of images already done on Udacity images earlier
+https://github.com/pierluigiferrari/data_generator_object_detection_2d
 
 # Notes
 -From https://medium.com/@anthony_sarkis/self-driving-cars-implementing-real-time-traffic-light-detection-and-classification-in-2017-7d9ae8df1c58
 https://medium.com/@UdacityINDIA/self-driving-vehicles-traffic-light-detection-and-classification-with-tensorflow-object-detection-d6a4d25e99c2
 R-CNN is superior to SSD on small objects
 - Used 260 samples from simulator
+- Udacity images is 800x600
 
 
 
@@ -69,5 +70,8 @@ R-CNN is superior to SSD on small objects
 * Upload Object detection lab to common Github
 
 
-
+# Shortcuts
+conda activate deep-learning
+cd /home/sra/Udacity/SelfDrivingCar/CarND-Capstone/Object-Detection-Lab/TrainingScript/ssd_keras
+jupyter notebook
  
