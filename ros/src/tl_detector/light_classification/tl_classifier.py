@@ -1,13 +1,13 @@
 from styx_msgs.msg import TrafficLight
 import numpy as np
-#from keras_layers.keras_layer_AnchorBoxes import AnchorBoxes
+from keras_layers.keras_layer_AnchorBoxes import AnchorBoxes
 from models.keras_ssd7 import build_model
 
 
 class TLClassifier(object):
     def __init__(self):
          ## Load model weights
-         weight_path = 'ssd7_TL_epoch-03_weights_simulator.h5'
+         weight_path = '/tmp/ssd7_TL_epoch-03_weights_simulator.h5'
 
          img_height = 600 # Height of the input images
          img_width = 800 # Width of the input images
@@ -23,7 +23,7 @@ class TLClassifier(object):
          clip_boxes = False # Whether or not to clip the anchor boxes to lie entirely within the image boundaries
          variances = [1.0, 1.0, 1.0, 1.0] # The list of variances by which the encoded target coordinates are scaled
          normalize_coords = True # Whether or not the model is supposed to use coordinates relative to the image size
-         model = build_model(image_size=(img_height, img_width, img_channels),
+         self.model = build_model(image_size=(img_height, img_width, img_channels),
                              n_classes=n_classes,
                              mode='inference',
                              l2_regularization=0.0005,
@@ -40,7 +40,7 @@ class TLClassifier(object):
                              divide_by_stddev=intensity_range)
 
          # 2: Load some weights
-         model.load_weights(weight_path, by_name=True)
+         self.model.load_weights(weight_path, by_name=True)
         
 
     def get_classification(self, image):
@@ -59,7 +59,7 @@ class TLClassifier(object):
         input_images = np.array([image])
 
         ## Predict images class
-        y_pred = model.predict(input_images)
+        y_pred = self.model.predict(input_images)
 
         # Filter predictions
         confidence_threshold = 0.9
