@@ -56,7 +56,7 @@ class TLDetector(object):
         self.last_state = TrafficLight.UNKNOWN
         self.last_wp = -1
         self.state_count = 0
-        self.image_cb_count = 0
+
         self.has_image = False
 #Here I'm attempting to deal with the latency issue by putting this node to sleep, in conjunction with skipping publishing in bridge.py
 # We may need to remove the loop logic here when testing on Carla and reinstitute rospy.spin() from line below
@@ -88,34 +88,18 @@ class TLDetector(object):
             # rospy.loginfo('Constructing waypoint tree')
             self.waypoint_tree = KDTree(self.waypoints_2d)
 
-    #def traffic_lights_aux(self, msg):
+    # TR method, may implement again def traffic_lights_aux(self, msg):
         #self.has_image = True
         #self.camera_image = msg
         #light_wp, state = self.process_traffic_lights()
         #self.upcoming_red_light_pub.publish(Int32(self.last_wp))
         #self.state_count += 1
 
-    def image_cb(self, msg):
-        """Identifies red lights in the incoming camera image and publishes the index
-            of the waypoint closest to the red light's stop line to /traffic_waypoint
-
-        Args:
-            msg (Image): image from car-mounted camera"""
-
-        
-        rospy.loginfo("tl_detector: IMAGE Detected")
-        self.image_cb_count = 10#self.image_cb_count + 1
-        if self.image_cb_count >= 0:
-            #rospy.logwarn("IMAGE PROCESSING")
-            self.image_cb_count = 0
-            self.has_image = True
-            self.camera_image = msg
-
     def traffic_cb(self, msg):
         self.lights = msg.lights
         #self.traffic_lights_aux(msg)
 
-#    def image_cb(self, msg):
+    def image_cb(self, msg):
         """Identifies red lights in the incoming camera image and publishes the index
             of the waypoint closest to the red light's stop line to /traffic_waypoint
 
@@ -123,16 +107,16 @@ class TLDetector(object):
             msg (Image): image from car-mounted camera
 
         """
-
- #       pass
+        rospy.loginfo("tl_detector: IMAGE Detected")
         # process/classify every CAMERA_IMAGE_COUNT_THRESHOLD image to address latency issues
-        # if self.camera_image_count < CAMERA_IMAGE_COUNT_THRESHOLD:
-        #     self.camera_image_count += 1
-        #     pass
-        # else:
-        #     self.camera_image_count = 0
-
-        # self.traffic_lights_aux(msg)
+        if self.camera_image_count < CAMERA_IMAGE_COUNT_THRESHOLD:
+            self.camera_image_count += 1
+            pass
+        else:
+            self.camera_image_count = 0
+            self.has_image = True
+            self.camera_image = msg
+        # TR method may implement ginself.traffic_lights_aux(msg)
 
     def get_closest_waypoint(self, x, y):
         """Identifies the closest path waypoint to the given position
