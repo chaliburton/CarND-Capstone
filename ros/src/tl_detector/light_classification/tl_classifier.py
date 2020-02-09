@@ -2,12 +2,15 @@ from styx_msgs.msg import TrafficLight
 import numpy as np
 from keras_layers.keras_layer_AnchorBoxes import AnchorBoxes
 from models.keras_ssd7 import build_model
-
+import os
+import rospy
+from PIL import Image
+import cv2
 
 class TLClassifier(object):
     def __init__(self):
          ## Load model weights
-         weight_path = '/tmp/ssd7_TL_epoch-03_weights_simulator.h5'
+         weight_path = 'light_classification/ssd7_TL_epoch-03_weights_simulator.h5'
 
          img_height = 600 # Height of the input images
          img_width = 800 # Width of the input images
@@ -41,6 +44,7 @@ class TLClassifier(object):
 
          # 2: Load some weights
          self.model.load_weights(weight_path, by_name=True)
+         np.set_printoptions(precision=2, suppress=True, linewidth=90)
         
 
     def get_classification(self, image):
@@ -55,18 +59,42 @@ class TLClassifier(object):
 
         """
 
-        # load one image
-        input_images = np.array([image])
+        # Convert image to PIL RGB image
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        img_PIL = Image.fromarray(image)
+
 
         ## Predict images class
-        y_pred = self.model.predict(input_images)
+        y_pred = self.model.predict(img_PIL)
 
         # Filter predictions
-        confidence_threshold = 0.9
+        confidence_threshold = 0.7
         y_pred_thresh = [y_pred[k][y_pred[k,:,1] > confidence_threshold] for k in range(y_pred.shape[0])]
 
-        np.set_printoptions(precision=2, suppress=True, linewidth=90)
-        print("Predicted boxes:\n")
-        print('   class   conf xmin   ymin   xmax   ymax')
-        print(y_pred_thresh[0])
-        return TrafficLight.UNKNOWN
+        # Output predicted classes and scores
+        rospy.loginfo("tl_classifier: class   conf xmin   ymin   xmax   ymax")
+        rospy.loginfo(y_pred_thresh[0][0:2])
+
+
+        tl_pred_classes = y_pred_thresh[0][:,0]
+
+        # Test light state (if prediction is not empty)
+        if tl_pred_classes.size > 0:
+            if (tl_pred_classes[0]==1):
+                tl_return = TrafficLight.GREEN
+                rospy.loginfo("tl_classifier: Green detected!")
+            elif (tl_pred_classes[0]==2):
+                tl_return = TrafficLight.YELLOW
+                rospy.loginfo("tl_classifier: Yellow detected!")
+            elif (tl_pred_classes[0]==3):
+                tl_return = TrafficLight.RED
+                rospy.loginfo("tl_classifier: Red detected!")
+            else:
+                tl_return = TrafficLight.UNKNOWN
+                rospy.loginfo("tl_classifier: Unknown detected!")
+        else:
+            tl_return = TrafficLight.UNKNOWN
+            rospy.loginfo("tl_classifier: Unknown detected!")
+
+
+        return tl_return

@@ -103,7 +103,7 @@ class TLDetector(object):
             msg (Image): image from car-mounted camera"""
 
         
-        #rospy.logwarn("IMAGE Detected")
+        rospy.loginfo("tl_detector: IMAGE Detected")
         self.image_cb_count = 10#self.image_cb_count + 1
         if self.image_cb_count >= 0:
             #rospy.logwarn("IMAGE PROCESSING")
@@ -164,7 +164,7 @@ class TLDetector(object):
         Returns:
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
         """
-
+        rospy.loginfo("tl_detector: get_light_state()")
         if(not self.has_image):
             self.prev_light_loc = None
             return False
@@ -172,6 +172,7 @@ class TLDetector(object):
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
 
         #Get classification
+        rospy.loginfo("tl_detector: get_classification()")
         return self.light_classifier.get_classification(cv_image)
 
     def process_traffic_lights(self):
@@ -186,6 +187,7 @@ class TLDetector(object):
         closest_light = None
         line_wp_idx = None
         stop_line_positions = self.config['stop_line_positions']
+        rospy.loginfo("tl_detector: process_traffic_lights()")
 
         if(self.pose):
             car_wp_idx = self.get_closest_waypoint(self.pose.pose.position.x , self.pose.pose.position.y)
@@ -195,7 +197,7 @@ class TLDetector(object):
 
         #TODO find the closest visible traffic light (if one exists)
             if self.waypoints is None:
-                rospy.logwarn("Couldn't process traffic lights due to unavailability of waypoints")
+                rospy.logwarn("tl_detector: Couldn't process traffic lights due to unavailability of waypoints")
                 return -1, TrafficLight.UNKNOWN
             diff = len(self.waypoints.waypoints)*2
             for i, light in enumerate(self.lights):
@@ -204,7 +206,7 @@ class TLDetector(object):
                 temp_wp_idx = self.get_closest_waypoint(line[0], line[1])
                 # Find closest stop line waypoint index
                 d = temp_wp_idx - car_wp_idx
-                
+                #rospy.loginfo("tl_detector: Stoplight idx: {}".format(d))
                 if d >= 0 and d < diff:
                     diff = d
                     closest_light = light
@@ -219,6 +221,7 @@ class TLDetector(object):
         """New function to speed up this node based on sleep cycle, pull all image processing functionality here"""
         # 1. call find closest traffic light, return closest traffic light position on map
         #rospy.logwarn("Running TL Detector Function... ")
+        rospy.loginfo("tl_detector: Running TL Detector Function... ")
         light_wp, state = self.process_traffic_lights()
         # 2. If distance is <200m, turn on camera and start passing to neural network recognition
         # 2. simulator, get state of closest camera
