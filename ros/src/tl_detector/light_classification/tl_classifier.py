@@ -62,17 +62,19 @@ class TLClassifier(object):
         # Convert image to PIL RGB image
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         img_PIL = Image.fromarray(image)
-
-
+        # Convert to np array
+        img_np = np.asarray(img_PIL)
+        # add a fourth batch dimension to array
+        img_np = np.expand_dims(img_np, axis=0)
         ## Predict images class
-        y_pred = self.model.predict(img_PIL)
+        y_pred = self.model.predict(img_np)
 
         # Filter predictions
         confidence_threshold = 0.7
         y_pred_thresh = [y_pred[k][y_pred[k,:,1] > confidence_threshold] for k in range(y_pred.shape[0])]
 
         # Output predicted classes and scores
-        rospy.loginfo("tl_classifier: class   conf xmin   ymin   xmax   ymax")
+        #rospy.loginfo("tl_classifier: class   conf xmin   ymin   xmax   ymax")
         rospy.loginfo(y_pred_thresh[0][0:2])
 
 
@@ -91,7 +93,7 @@ class TLClassifier(object):
                 rospy.loginfo("tl_classifier: Red detected!")
             else:
                 tl_return = TrafficLight.UNKNOWN
-                rospy.loginfo("tl_classifier: Unknown detected!")
+                rospy.loginfo("tl_classifier: Other class detected!")
         else:
             tl_return = TrafficLight.UNKNOWN
             rospy.loginfo("tl_classifier: Unknown detected!")

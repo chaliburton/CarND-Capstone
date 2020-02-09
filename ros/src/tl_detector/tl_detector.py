@@ -13,8 +13,8 @@ import cv2
 from scipy.spatial import KDTree
 import yaml
 
-STATE_COUNT_THRESHOLD = 3
-CAMERA_IMAGE_COUNT_THRESHOLD = 4
+STATE_COUNT_THRESHOLD = 1
+CAMERA_IMAGE_COUNT_THRESHOLD = 6
 
 class TLDetector(object):
     def __init__(self):
@@ -148,7 +148,6 @@ class TLDetector(object):
         Returns:
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
         """
-        rospy.loginfo("tl_detector: get_light_state()")
         if(not self.has_image):
             self.prev_light_loc = None
             return False
@@ -171,7 +170,7 @@ class TLDetector(object):
         closest_light = None
         line_wp_idx = None
         stop_line_positions = self.config['stop_line_positions']
-        rospy.loginfo("tl_detector: process_traffic_lights()")
+        #rospy.loginfo("tl_detector: process_traffic_lights()")
 
         if(self.pose):
             car_wp_idx = self.get_closest_waypoint(self.pose.pose.position.x , self.pose.pose.position.y)
@@ -205,14 +204,14 @@ class TLDetector(object):
         """New function to speed up this node based on sleep cycle, pull all image processing functionality here"""
         # 1. call find closest traffic light, return closest traffic light position on map
         #rospy.logwarn("Running TL Detector Function... ")
-        rospy.loginfo("tl_detector: Running TL Detector Function... ")
+        #rospy.loginfo("tl_detector: Running TL Detector Function... ")
         light_wp, state = self.process_traffic_lights()
         # 2. If distance is <200m, turn on camera and start passing to neural network recognition
         # 2. simulator, get state of closest camera
         #rospy.logwarn("Closest light index: {0}" . format(light_wp))
         #rospy.logwarn("Closest light state is: {0}" . format(state))
         
-        image_save = True
+        image_save = False
         if image_save == True and self.camera_image and self.dist < 500:
             try:
                 # Convert your ROS Image message to OpenCV2
