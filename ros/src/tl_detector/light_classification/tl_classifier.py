@@ -61,13 +61,10 @@ class TLClassifier(object):
 
         # Convert image to PIL RGB image
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        img_PIL = Image.fromarray(image)
-        # Convert to np array
-        img_np = np.asarray(img_PIL)
         # add a fourth batch dimension to array
-        img_np = np.expand_dims(img_np, axis=0)
+        image = np.expand_dims(image, axis=0)
         ## Predict images class
-        y_pred = self.model.predict(img_np)
+        y_pred = self.model.predict(image)
 
         # Filter predictions
         confidence_threshold = 0.7
@@ -77,11 +74,14 @@ class TLClassifier(object):
         #rospy.loginfo("tl_classifier: class   conf xmin   ymin   xmax   ymax")
         rospy.loginfo(y_pred_thresh[0][0:2])
 
-
+        # Filter classes prediction
         tl_pred_classes = y_pred_thresh[0][:,0]
+        # Find classes that contains tl's
+        tl_pred_classes = [cl for cl in tl_pred_classes if 1<=cl<=3]
+
 
         # Test light state (if prediction is not empty)
-        if tl_pred_classes.size > 0:
+        if len(tl_pred_classes) > 0:
             if (tl_pred_classes[0]==1):
                 tl_return = TrafficLight.GREEN
                 rospy.loginfo("tl_classifier: Green detected!")
