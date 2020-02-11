@@ -11,8 +11,10 @@ class TLClassifier(object):
     def __init__(self,is_site):
         ## Load model weights site or simulator
         if is_site:
+            rospy.loginfo("tl_classifier: Load model for site!")
             weight_path = 'light_classification/ssd7_TL_epoch-03_weights_Carla.h5'
         else:
+            rospy.loginfo("tl_classifier: Load model for simulator!")
             weight_path = 'light_classification/ssd7_TL_epoch-03_weights_simulator.h5'
         
         self.img_height = 600 # Height of the input images
@@ -74,7 +76,7 @@ class TLClassifier(object):
         if image.shape==(1, self.img_height, self.img_width, self.img_channels):
             y_pred = self.model.predict(image)
         else:
-            rospy.logwarn("tl_classifier: Wrong image shape: ", image.shape)
+            rospy.logwarn("tl_classifier: Wrong image shape: {},{},{},{}".format(image.shape[0],image.shape[1],image.shape[2],image.shape[3]))
             return TrafficLight.UNKNOWN
 
         # Filter predictions
@@ -83,10 +85,10 @@ class TLClassifier(object):
 
         # Output predicted classes and scores
         #rospy.loginfo("tl_classifier: class   conf xmin   ymin   xmax   ymax")
-        rospy.loginfo(y_pred_thresh[0][0:2])
-
+  
         # Filter classes prediction
         tl_pred_classes = y_pred_thresh[0][:,0]
+        tl_pred_scores = y_pred_thresh[0][:,1]
         # Find classes that contains tl's
         tl_pred_classes = [cl for cl in tl_pred_classes if 1<=cl<=3]
 
@@ -95,13 +97,13 @@ class TLClassifier(object):
         if len(tl_pred_classes) > 0:
             if (tl_pred_classes[0]==1):
                 tl_return = TrafficLight.GREEN
-                rospy.loginfo("tl_classifier: Green detected!")
+                rospy.loginfo("tl_classifier: Green detected, score {:.2f}".format(tl_pred_scores[0]))
             elif (tl_pred_classes[0]==2):
                 tl_return = TrafficLight.YELLOW
-                rospy.loginfo("tl_classifier: Yellow detected!")
+                rospy.loginfo("tl_classifier: Yellow detected, score {:.2f}".format(tl_pred_scores[0]))
             elif (tl_pred_classes[0]==3):
                 tl_return = TrafficLight.RED
-                rospy.loginfo("tl_classifier: Red detected!")
+                rospy.loginfo("tl_classifier: Red detected, score {:.2f}".format(tl_pred_scores[0]))
             else:
                 tl_return = TrafficLight.UNKNOWN
                 rospy.loginfo("tl_classifier: Other class detected!")
