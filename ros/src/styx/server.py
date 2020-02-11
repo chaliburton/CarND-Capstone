@@ -44,30 +44,23 @@ def telemetry(sid, data):
 def control(sid, data):
     bridge.publish_controls(data)
 
-#@sio.on('obstacle')
-#def obstacle(sid, data):
-#    bridge.publish_obstacles(data)
-
-#@sio.on('lidar')
-#def obstacle(sid, data):
-#    bridge.publish_lidar(data)
-
+#######################################################################
+#######################################################################
+##### USE CONFIG TO TURN OFF/ON THESE SIMULATOR = OFF, CARLA = ON #####
+#######################################################################
+# @sio.on('obstacle')
+# def obstacle(sid, data):
+#     bridge.publish_obstacles(data)
+#
+# @sio.on('lidar')
+# def obstacle(sid, data):
+#     bridge.publish_lidar(data)
+#######################################################################
+#######################################################################
 @sio.on('trafficlights')
 def trafficlights(sid, data):
     bridge.publish_traffic(data)
 
-# Not using Option #1 causes significant latency
-"""@sio.on('image')
-def image(sid, data):
-    global lastTime
-    timeNow = time.time() # this may need to be rospy time?
-    if timeNow - lastTime >= 1.0 :
-       bridge.publish_camera(data) # existing line
-       lastTime = timeNow
-    else:
-        pass
-"""        
-# USING Option #2
 @sio.on('image')
 def image(sid, data):
     bridge.publish_camera(data) # existing line
