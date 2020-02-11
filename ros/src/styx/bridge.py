@@ -176,20 +176,24 @@ class Bridge(object):
         self.publishers['dbw_status'].publish(Bool(data))
 
     def publish_camera(self, data):
-        """# confirm this timestamp matches the data, shouldn't the latency of calling this function may result in undesired behaviour
-        rospy.logwarn("publishing image from bridge.py file")
-        imgString = data["image"]
-        image = PIL_Image.open(BytesIO(base64.b64decode(imgString)))
-        image_array = np.asarray(image)
-        image_message = self.bridge.cv2_to_imgmsg(image_array, encoding="rgb8")
-        self.publishers['image'].publish(image_message)
-        """        # confirm this timestamp matches the data, shouldn't the latency of calling this function may result in undesired behaviour
+#######################################################################
+#######################################################################
+##### USE CONFIG TO TURN OFF/ON THESE SIMULATOR = OFF, CARLA = ON #####
+#######################################################################
+#        if CARLA:
+#           rospy.logwarn("publishing image from bridge.py file")
+#           imgString = data["image"]
+#           image = PIL_Image.open(BytesIO(base64.b64decode(imgString)))
+#           image_array = np.asarray(image)
+#           image_message = self.bridge.cv2_to_imgmsg(image_array, encoding="rgb8")
+#           self.publishers['image'].publish(image_message)
+#        else simulation:
+#      
         time_now = rospy.get_time()
         sample_time_image = time_now - self.last_time_image
-        if sample_time_image >=   0.25:
+        if sample_time_image >=   0.25:                                     # <-- set this to frequency of ROS_CameraPublishHz
             self.last_time_image = time_now
 #            rospy.logwarn("publishing image from bridge.py file")
-
             imgString = data["image"]
             image = PIL_Image.open(BytesIO(base64.b64decode(imgString)))
             image_array = np.asarray(image)
@@ -197,6 +201,9 @@ class Bridge(object):
             self.publishers['image'].publish(image_message)
         else:
             pass
+#######################################################################
+######################################################################
+
 
     def callback_steering(self, data):
         self.server('steer', data={'steering_angle': str(data.steering_wheel_angle_cmd)})
