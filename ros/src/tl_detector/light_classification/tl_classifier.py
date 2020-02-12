@@ -6,6 +6,7 @@ import os
 import rospy
 from PIL import Image
 import cv2
+import glob
 
 class TLClassifier(object):
     def __init__(self,is_site):
@@ -113,3 +114,28 @@ class TLClassifier(object):
 
 
         return tl_return
+
+if __name__ == "__main__":
+    images_list = glob.glob('light_classification/bag_frames_color/*.jpg')
+    light_classifier = TLClassifier(True)
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    for image in images_list:
+        print("processing image: ", image)
+        image_cv = cv2.imread(image, cv2.IMREAD_COLOR)
+        tl_return = light_classifier.get_classification(image_cv)
+        if (tl_return == TrafficLight.GREEN):
+            text = "GREEN"
+            color = (0,255,0)
+        elif (tl_return == TrafficLight.YELLOW):
+            text = "YELLOW"
+            color = (0,255,255)
+        elif (tl_return == TrafficLight.RED):
+            text = "RED"
+            color = (0,0,255)
+        else:
+            text = "UNKNOWN"
+            color = (255,0,0)
+        
+        cv2.putText(image_cv,text,(10,500), font, 4,color, 5, cv2.LINE_AA)
+        cv2.imwrite('light_classification/bag_frames_color_classified/' + os.path.basename(image), image_cv)
+    
