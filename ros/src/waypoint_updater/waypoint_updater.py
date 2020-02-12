@@ -5,6 +5,7 @@ from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Int32
 from styx_msgs.msg import Lane, Waypoint
 from scipy.spatial import KDTree
+from params_config.params_config import ParamsConfig
 import yaml
 
 import math
@@ -38,8 +39,8 @@ class WaypointUpdater(object):
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         try:
-            config_string = rospy.get_param("/params_config")
-            self.config = yaml.load(config_string)
+            params_config = ParamsConfig.getInstance()
+            self.config = params_config.getConfig()
         except KeyError:
             rospy.loginfo("Custom parameters not used")
             self.config = None
