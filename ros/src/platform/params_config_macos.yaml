@@ -1,2 +1,3 @@
 waypoints_updater:
   frequency: 5
+  lookahead_wps: 50  

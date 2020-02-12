@@ -20,7 +20,4 @@
 
     <!--Traffic Light Locations and Camera Config -->
     <param name="traffic_light_config" textfile="$(find tl_detector)/sim_traffic_light_config.yaml" />
-
-    <!--Platform Based Params Config -->
-    <param name="params_config" textfile="src/platform/params_config.yaml" />
 </launch>

@@ -37,8 +37,15 @@ class WaypointUpdater(object):
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
-        config_string = rospy.get_param("/params_config")
-        self.config = yaml.load(config_string)
+        try:
+            config_string = rospy.get_param("/params_config")
+            self.config = yaml.load(config_string)
+        except KeyError:
+            rospy.loginfo("Custom parameters not used")
+            self.config = None
+
+        traffic_light_config_string = rospy.get_param("/traffic_light_config")
+        self.traffic_light_config = yaml.load(traffic_light_config_string)
 
         # TODO: Add other member variables you need below
         self.pose = None
@@ -51,7 +58,19 @@ class WaypointUpdater(object):
         self.loop()   # //rospy.spin()
 
     def loop(self):
-        waypoint_updater_frequency = self.config["waypoints_updater"]["frequency"]
+        if self.config is not None:
+            # override values with our own config
+            waypoint_updater_frequency = self.config["waypoints_updater"]["frequency"]
+            LOOKAHEAD_WPS = self.config["waypoints_updater"]["lookahead_wps"]
+        else:
+            waypoint_updater_frequency = 50 # default frequency value from original/initial code
+            if self.traffic_light_config['is_site']:
+                # running on Carla
+                LOOKAHEAD_WPS = 100
+            else:
+                # running in simulator
+                LOOKAHEAD_WPS = 50
+
         rate = rospy.Rate(waypoint_updater_frequency)##updated from 50 to now be variable
         while not rospy.is_shutdown():
             if self.pose and self.base_lane and self.stopline_wp_idx:               # added to ensure three messages are brought in from subscritopns
