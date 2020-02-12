@@ -80,7 +80,7 @@ class TLDetector(object):
         self.waypoints = waypoints
         if not self.waypoints_2d:
             self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in waypoints.waypoints]
-            # rospy.loginfo('Constructing waypoint tree')
+            #rospy.loginfo('Constructing waypoint tree')
             self.waypoint_tree = KDTree(self.waypoints_2d)
 
     def traffic_cb(self, msg):
@@ -161,7 +161,7 @@ class TLDetector(object):
 
         #TODO find the closest visible traffic light (if one exists)
             if self.waypoints is None:
-                #rospy.logwarn("tl_detector: Couldn't process traffic lights due to unavailability of waypoints")
+                rospy.logwarn("tl_detector: Couldn't process traffic lights due to unavailability of waypoints")
                 return -1, TrafficLight.UNKNOWN
             diff = len(self.waypoints.waypoints)*2
             for i, light in enumerate(self.lights):
@@ -170,8 +170,8 @@ class TLDetector(object):
                 temp_wp_idx = self.get_closest_waypoint(line[0], line[1])
                 # Find closest stop line waypoint index
                 d = temp_wp_idx - car_wp_idx
-                #rospy.loginfo("tl_detector: Stoplight idx: {}".format(d))
-                if d >= 0 and d < diff:
+                #rospy.loginfo("tl_detector: Stoplight idx: {}, diff: {}".format(d, diff))
+                if d >= -2 and d < diff:
                     diff = d
                     closest_light = light
                     line_wp_idx = temp_wp_idx
@@ -201,14 +201,18 @@ class TLDetector(object):
         light_wp, self.state = self.process_traffic_lights()
         if self.camera_image and self.dist < 500:
             try:
-                # Convert your ROS Image message to OpenCV2
+                # Convert your ROS Image message to OpenCV2                
                 path = 'images/'
+                if not os.path.isdir(path):
+                    os.mkdir(path)
                 cv2_img = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
             except CvBridgeError, e:
                 print(e)
             else:
+
                 # Save your OpenCV2 image as a jpeg                     state, '_', self.inc,'_',
-                full_path = os.path.join(path,str(state),str(state)+'_' + str(self.inc)+ 'img.jpeg')
+                full_path = os.path.join(path,str(self.state)+'_' + str(self.inc)+ 'img.jpeg')
+
                 rospy.logwarn("PATH IS:    {0}" . format(full_path))
                 cv2.imwrite(full_path, cv2_img)
                 self.inc += 1         
