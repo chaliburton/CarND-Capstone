@@ -7,14 +7,14 @@ from styx_msgs.msg import Lane
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import os
-#from light_classification.tl_classifier import TLClassifier
+from light_classification.tl_classifier import TLClassifier
 import tf
 import cv2
 from scipy.spatial import KDTree
 import yaml
 
-STATE_COUNT_THRESHOLD = 3
-CAMERA_IMAGE_COUNT_THRESHOLD = 4
+STATE_COUNT_THRESHOLD = 1
+CAMERA_IMAGE_COUNT_THRESHOLD = 6
 
 class TLDetector(object):
     def __init__(self):
@@ -49,14 +49,15 @@ class TLDetector(object):
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
         self.bridge = CvBridge()
-        #self.light_classifier = TLClassifier()
+        self.light_classifier = TLClassifier(self.config['is_site'])
         self.listener = tf.TransformListener()
 
         self.state = TrafficLight.UNKNOWN
         self.last_state = TrafficLight.UNKNOWN
         self.last_wp = -1
         self.state_count = 0
-        self.image_cb_count = 0
+
+        self.has_image = False
 #Here I'm attempting to deal with the latency issue by putting this node to sleep, in conjunction with skipping publishing in bridge.py
 # We may need to remove the loop logic here when testing on Carla and reinstitute rospy.spin() from line below
         #rospy.spin()
@@ -87,34 +88,18 @@ class TLDetector(object):
             # rospy.loginfo('Constructing waypoint tree')
             self.waypoint_tree = KDTree(self.waypoints_2d)
 
-    #def traffic_lights_aux(self, msg):
+    # TR method, may implement again def traffic_lights_aux(self, msg):
         #self.has_image = True
         #self.camera_image = msg
         #light_wp, state = self.process_traffic_lights()
         #self.upcoming_red_light_pub.publish(Int32(self.last_wp))
         #self.state_count += 1
 
-    def image_cb(self, msg):
-        """Identifies red lights in the incoming camera image and publishes the index
-            of the waypoint closest to the red light's stop line to /traffic_waypoint
-
-        Args:
-            msg (Image): image from car-mounted camera"""
-
-        
-        #rospy.logwarn("IMAGE Detected")
-        self.image_cb_count = 10#self.image_cb_count + 1
-        if self.image_cb_count >= 0:
-            #rospy.logwarn("IMAGE PROCESSING")
-            self.image_cb_count = 0
-            self.has_image = True
-            self.camera_image = msg
-
     def traffic_cb(self, msg):
         self.lights = msg.lights
         #self.traffic_lights_aux(msg)
 
-#    def image_cb(self, msg):
+    def image_cb(self, msg):
         """Identifies red lights in the incoming camera image and publishes the index
             of the waypoint closest to the red light's stop line to /traffic_waypoint
 
@@ -122,16 +107,16 @@ class TLDetector(object):
             msg (Image): image from car-mounted camera
 
         """
-
- #       pass
+        rospy.loginfo("tl_detector: IMAGE Detected")
         # process/classify every CAMERA_IMAGE_COUNT_THRESHOLD image to address latency issues
-        # if self.camera_image_count < CAMERA_IMAGE_COUNT_THRESHOLD:
-        #     self.camera_image_count += 1
-        #     pass
-        # else:
-        #     self.camera_image_count = 0
-
-        # self.traffic_lights_aux(msg)
+        if self.camera_image_count < CAMERA_IMAGE_COUNT_THRESHOLD:
+            self.camera_image_count += 1
+            pass
+        else:
+            self.camera_image_count = 0
+            self.has_image = True
+            self.camera_image = msg
+        # TR method may implement ginself.traffic_lights_aux(msg)
 
     def get_closest_waypoint(self, x, y):
         """Identifies the closest path waypoint to the given position
@@ -153,7 +138,7 @@ class TLDetector(object):
     def get_light_state(self, light):
         # rospy.logwarn("Closest light color is: {0}" . format(light.state))
 
-        return light.state
+        # return light.state
         """  commented out for testing stop/start commands
         Determines the current color of the traffic light
 
@@ -162,8 +147,7 @@ class TLDetector(object):
 
         Returns:
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
-
-
+        """
         if(not self.has_image):
             self.prev_light_loc = None
             return False
@@ -171,8 +155,9 @@ class TLDetector(object):
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
 
         #Get classification
+        #rospy.loginfo("tl_detector: get_classification()")
         return self.light_classifier.get_classification(cv_image)
-"""
+
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its
             location and color
@@ -185,6 +170,7 @@ class TLDetector(object):
         closest_light = None
         line_wp_idx = None
         stop_line_positions = self.config['stop_line_positions']
+        #rospy.loginfo("tl_detector: process_traffic_lights()")
 
         if(self.pose):
             car_wp_idx = self.get_closest_waypoint(self.pose.pose.position.x , self.pose.pose.position.y)
@@ -194,7 +180,7 @@ class TLDetector(object):
 
         #TODO find the closest visible traffic light (if one exists)
             if self.waypoints is None:
-                rospy.logwarn("Couldn't process traffic lights due to unavailability of waypoints")
+                rospy.logwarn("tl_detector: Couldn't process traffic lights due to unavailability of waypoints")
                 return -1, TrafficLight.UNKNOWN
             diff = len(self.waypoints.waypoints)*2
             for i, light in enumerate(self.lights):
@@ -203,7 +189,7 @@ class TLDetector(object):
                 temp_wp_idx = self.get_closest_waypoint(line[0], line[1])
                 # Find closest stop line waypoint index
                 d = temp_wp_idx - car_wp_idx
-                
+                #rospy.loginfo("tl_detector: Stoplight idx: {}".format(d))
                 if d >= 0 and d < diff:
                     diff = d
                     closest_light = light
@@ -218,13 +204,14 @@ class TLDetector(object):
         """New function to speed up this node based on sleep cycle, pull all image processing functionality here"""
         # 1. call find closest traffic light, return closest traffic light position on map
         #rospy.logwarn("Running TL Detector Function... ")
+        #rospy.loginfo("tl_detector: Running TL Detector Function... ")
         light_wp, state = self.process_traffic_lights()
         # 2. If distance is <200m, turn on camera and start passing to neural network recognition
         # 2. simulator, get state of closest camera
         #rospy.logwarn("Closest light index: {0}" . format(light_wp))
         #rospy.logwarn("Closest light state is: {0}" . format(state))
         
-        image_save = True
+        image_save = False
         if image_save == True and self.camera_image and self.dist < 500:
             try:
                 # Convert your ROS Image message to OpenCV2

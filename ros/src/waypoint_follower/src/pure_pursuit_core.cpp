@@ -241,8 +241,7 @@ bool PurePursuit::verifyFollowing() const
   if (displacement < displacement_threshold_ && relative_angle < relative_angle_threshold_)
   {
     // ROS_INFO("Following : True");
-    // return false;//true;
-    return true;
+    return false;//true;  ## Config here for simulator/Carla: Carla = True, Simulator = false
   }
   else
   {

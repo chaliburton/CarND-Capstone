@@ -3,13 +3,13 @@ import xml.etree.cElementTree as ET
 import glob
 
 # Path to xml file
-data_path = '../TrainData/Simulator/'
+data_path = 'TrainData/Carla/'
 
 # Path to csv file
 csv_path = data_path
 
 # csv filename
-csv_file_name = csv_path + 'label_sim_training.csv'
+csv_file_name = csv_path + 'label_training.csv'
 
 # Open CSV file for writing
 csv_file = open(csv_file_name,'w')
