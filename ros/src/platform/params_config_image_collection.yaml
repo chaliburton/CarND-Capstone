@@ -3,3 +3,5 @@ waypoints_updater:
   lookahead_wps: 50
 twist_controller:
   mx: 0.01
+dbw:
+  rate: 50
