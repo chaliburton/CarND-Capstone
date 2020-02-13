@@ -1,6 +1,7 @@
 from pid import PID
 from lowpass import LowPassFilter
 from yaw_controller import YawController
+from params_config.params_config import ParamsConfig
 import rospy
 
 GAS_DENSITY = 2.858
@@ -15,14 +16,23 @@ class Controller(object):
 # Yaw controller is provided, in yaw_controller.py, but need to pass it the arguments it expects
 #                                      ---> wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle
         self.yaw_controller = YawController(wheel_base, steer_ratio, 0.1, max_lat_accel, max_steer_angle)
-
-    
+        
+        self.config = ParamsConfig.getInstance().getConfig()
+        if self.config is not None:
+            rospy.logwarn("twist_controller: custom parameters used")
+            mx = self.config["twist_controller"]["mx"]
+        else:
+            if ParamsConfig.isSite():
+                # running on Carla
+                mx = 0.5
+            else:
+                # running in sumulator
+                mx = 0.6 # maximum throttle value
 # Setup parameters for throttle controller        
         kp = 0.4
         ki = 0.2
         kd = 0.3
         mn = 0.0 # minimum throttle value
-        mx = 0.6 # maximum throttle value #for camera capture = 0.01
         # Brake PID
         b_kp = 200.0
         b_ki = 0.1

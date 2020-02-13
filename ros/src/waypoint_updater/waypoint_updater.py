@@ -38,15 +38,7 @@ class WaypointUpdater(object):
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
-        try:
-            params_config = ParamsConfig.getInstance()
-            self.config = params_config.getConfig()
-        except KeyError:
-            rospy.loginfo("Custom parameters not used")
-            self.config = None
-
-        traffic_light_config_string = rospy.get_param("/traffic_light_config")
-        self.traffic_light_config = yaml.load(traffic_light_config_string)
+        self.config = ParamsConfig.getInstance().getConfig()
 
         # TODO: Add other member variables you need below
         self.pose = None
@@ -61,11 +53,12 @@ class WaypointUpdater(object):
     def loop(self):
         if self.config is not None:
             # override values with our own config
+            rospy.logwarn("waypoint_updater: custom parameters used")
             waypoint_updater_frequency = self.config["waypoints_updater"]["frequency"]
             LOOKAHEAD_WPS = self.config["waypoints_updater"]["lookahead_wps"]
         else:
             waypoint_updater_frequency = 50 # default frequency value from original/initial code
-            if self.traffic_light_config['is_site']:
+            if ParamsConfig.isSite():
                 # running on Carla
                 LOOKAHEAD_WPS = 100
             else:
