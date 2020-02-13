@@ -10,6 +10,7 @@ from flask import Flask, render_template
 
 from bridge import Bridge
 from conf import conf
+from params_config.params_config import ParamsConfig
 
 sio = socketio.Server()
 app = Flask(__name__)
@@ -48,13 +49,23 @@ def control(sid, data):
 #######################################################################
 ##### USE CONFIG TO TURN OFF/ON THESE SIMULATOR = OFF, CARLA = ON #####
 #######################################################################
-# @sio.on('obstacle')
-# def obstacle(sid, data):
-#     bridge.publish_obstacles(data)
-#
-# @sio.on('lidar')
-# def obstacle(sid, data):
-#     bridge.publish_lidar(data)
+@sio.on('obstacle')
+def obstacle(sid, data):
+    if ParamsConfig.isSite():
+        # running on Carla
+        pass
+    else:
+        # running in simulator
+        bridge.publish_obstacles(data)
+
+@sio.on('lidar')
+def obstacle(sid, data):
+    if ParamsConfig.isSite():
+        # running on Carla
+        bridge.publish_lidar(data)
+    else:
+        # running in simulator
+        pass
 #######################################################################
 #######################################################################
 @sio.on('trafficlights')
