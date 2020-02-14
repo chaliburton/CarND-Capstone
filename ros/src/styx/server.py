@@ -53,10 +53,10 @@ def control(sid, data):
 def obstacle(sid, data):
     if ParamsConfig.isSite():
         # running on Carla
-        pass
+        bridge.publish_obstacles(data)
     else:
         # running in simulator
-        bridge.publish_obstacles(data)
+        pass
 
 @sio.on('lidar')
 def obstacle(sid, data):
