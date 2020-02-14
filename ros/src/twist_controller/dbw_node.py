@@ -4,6 +4,7 @@ import rospy
 from std_msgs.msg import Bool
 from dbw_mkz_msgs.msg import ThrottleCmd, SteeringCmd, BrakeCmd, SteeringReport
 from geometry_msgs.msg import TwistStamped
+from params_config.params_config import ParamsConfig
 import math
 
 from twist_controller import Controller
@@ -80,7 +81,14 @@ class DBWNode(object):
         self.loop()
 
     def loop(self):
-        rate = rospy.Rate(50) # 50Hz for Carla to work, may need to decrease to get working locally in simulator
+        config = ParamsConfig.getInstance().getConfig()
+        if config is not None:
+            rospy.logwarn("dbw: custom parameters used")
+            dbw_rate = config["dbw"]["rate"]
+        else:
+            dbw_rate = 50 # 50Hz for Carla to work
+
+        rate = rospy.Rate(dbw_rate)
         while not rospy.is_shutdown():
             # TODO: Get predicted throttle, brake, and steering using `twist_controller`
             # You should only publish the control commands if dbw is enabled

@@ -2,6 +2,6 @@ waypoints_updater:
   frequency: 5
   lookahead_wps: 50
 twist_controller:
-  mx: 0.6
+  mx: 0.01
 dbw:
   rate: 50
