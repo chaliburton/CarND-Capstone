@@ -1,4 +1,31 @@
-This is the project repo for the final project of the Udacity Self-Driving Car Nanodegree: Programming a Real Self-Driving Car. For more information about the project, see the project introduction [here](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/e1a23b06-329a-4684-a717-ad476f0d8dff/lessons/462c933d-9f24-42d3-8bdc-a08a5fc866e4/concepts/5ab4b122-83e6-436d-850f-9f4d26627fd9).
+This is the project repo for the final project of the Udacity Self-Driving Car Nanodegree: Programming a Real Self-Driving Car.
+
+## Team Members
+
+Our team consits of the following members:
+* Chris Haliburton (chris.haliburton@gmail.com) -- team lead
+* Søren Rusbjerg (rusbjerg.consulting@gmail.com)
+* Todor Ristov (ristovtodor@gmail.com)
+
+[//]: # (Image References)
+
+[system_architecture]: ./system_architecture.png "system_architecture"
+
+## Programming a Real Self-Driving Car
+The goal of the project is to program a car that can drive autonomosly, and detect and obey traffic lights, in a constrained real-world environment (parking lot). The underlying platform is ROS and all of the core functionality of the autonomous vehicle system is implemented as ROS nodes. The code is first tested on a simulator by driving around on a fixed track with traffic lights. Once the vehicle drives successfully in the simulator, the code can be loaded on Udacity's self-driving test vehicle, Carla, and tested in the parking lot.
+
+In the following sections we give a brief system architecture overview and describe the system components we've implemented.
+
+### System Architecture
+The following system architecture diagram shows a good high-level overview of the system components involved and how they interact with each other.
+
+![alt text][system_architecture]
+
+### Planning
+### Perception
+### Control
+
+## Installation Options
 
 Please use **one** of the two installation options, either native **or** docker installation.
 
