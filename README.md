@@ -26,7 +26,7 @@ The following system architecture diagram shows a good high-level overview of th
 ### Planning
 ### Perception
 ####
-Obstacle detection is not used in this project. Rather we use the traffic light and stop line coordinates given to us in the yaml files *stop_line_positions* to know where to stop the car when the traffic light is red.
+Obstacle detection is not used in this project. Rather we use the traffic light coordinates given to us in the yaml files *stop_line_positions* to generate stop line indices where to the car will stop when the traffic light is red.
 
 
 #### Traffic light Detection
