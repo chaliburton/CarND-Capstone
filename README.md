@@ -24,12 +24,21 @@ The following system architecture diagram shows a good high-level overview of th
 ![alt text][system_architecture]
 
 ### Planning
+#### Waypoint Loader Node
+The Waypoint Loader Node reads in a set of waypoints on the map and creates a vector of waypoints for the vehicle to follow.  These waypoints are comprised of an x,y and z position, an orientation for the vehicle to be in (yaw) as well as a velocity target to be achieved.  These base waypoints are published so that the vehicle can make decisions based on it's perceived surroundings.
+
+As arcitected the Obstacle Detection Node receives image data, current position on the map and base waypoints.  It could be set up to detect obstacles, modify the waypoints to change lanes, speed up, slow down or stop in order to avoid these obstacles.  The Traffic Light Detection Node receives image, position and base waypoints as well and a traffic light classifier was implemented in order to react to the detected traffic light state accordingly. Both the Obstacle Detection Node and Traffic Light Detection Node each return a waypoint which represent a modifier that indicates where an obstacle or traffic light is.  The Waypoint Updater Node then takes action on this information.
+
+#### Waypoint Updater Node
+The Waypoint Updater Node takes in the base waypoints, current position and a traffic light waypoint.  The obstacle waypoint is not implemented for this project but could be implemented in a similar fashion.
+The traffic light waypoint, traffic_waypoint, is broadcast and received as a waypoint at which the vehicle should stop when the Traffic Light Classifier identifies a red light.  If the state of the light is yellow or green the waypoint is set to a value which the vehicle does not consume (-1).  If the state of the light is red, the waypoint is set to a waypoint index in advance of the light to effect a safe stopping position (vehicle bumper on stop line, clear from intersection).  The waypoint speed is set to zero and a function is implemented to create a target speed between the vehicle's current waypoint and the stop waypoint.  This creates a ramp down in speed.  The brake controller is activated and the throttle command goes to zero and the PID is reset when the speed desired is below the actual speed by a target threshold value.  When the vehicle comes to a stop the brake pressure is set to a 700N-m threshold to overcome torque creep of the automatic transmission.  When the light changes state the waypoint stop index is cleared and the vehicle resets the brake PID controller and enables the throttle controller.  The throttle controller then targets a speed which is unmodified from the original base_waypoints signal.
+
 ### Perception
-####
-Obstacle detection is not used in this project. Rather we use the traffic light coordinates given to us in the yaml files *stop_line_positions* to generate stop line indices where to the car will stop when the traffic light is red.
+#### Obstacle Detection Node
+Obstacle detection is outside the scope of this project as there are no obstacles in the form of cars, bicycles, people or other objects in the simulator or real worl parking lot. Rather we use the traffic light coordinates given to us in the yaml files *stop_line_positions* to generate stop line indices where the car will stop when the traffic light is red as determined by the Traffic Light Detection Node.
 
 
-#### Traffic light Detection
+#### Traffic light Detection Node
 The traffic lights are classified into **Red**, **Yellow**, **Green** and **Unknown** by the classifier. The classifier consist of a SSD (Single Shot Detector) network which is borrowed from  [Pierluigi Ferrari: SSD-Keras](https://github.com/pierluigiferrari/ssd_keras) Github. We have used his 7-layer SSD architecture (SSD-7), which is very fast, yet still capable of giving a good classification score on the traffic lights in the simulator and in Carla. Luigi recorded a speed of 127 frames per second using a Geforce GTX 1070 (mid-tear graffic card). 
 Originally the classifier outputs 5 classes ('car', 'truck', 'pedestrian', 'bicyclist', 'light'), but we have retrained it to only predict the three traffic light states as well as the 'unknown' which covers when there are no traffic lights. The bounding boxes have also been trained, but are not used during classification. Here only the top score, ie. best prediction is used to get the classification. 
 
