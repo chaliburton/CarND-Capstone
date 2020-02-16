@@ -52,6 +52,33 @@ Examples of prediction on the simulator and Carla can be seen below:
 ![alt text][Carla_prediction]
 
 ### Control
+#### DBW Node
+The DBW Node implements the drive-by-wire controllers necessary to enable the vehicle to follow the waypoints.  A steering command from -1 to 1, throttle command signal from 0-1 and brake command in N-m are broadcast. This node handles messaaging Input/Output between the ROS nodes and vehicle simulator (by way of bridge.py and server.py).  Current velocity and a boolean, dbw_enabled come into this node from the vehicle (Carla or simulator).  The Waypoint Follower does the bulk of the calculations when the dbw_node is enabled.  While dbw_node is not enabled the ROS system does not effect control signals to the vehicle.
+
+#### Waypoint Follower Node
+The Waypoint Follower Node is comprosed mainly of some c++ code which translates the waypoints into vehicle coordinates and controls.  A yaw controller for the steering wheel angle was provided and worked sufficiently well so as not to need modifications.
+The twist controller is where the brake and throttle controllers are located.  The work in this code is being done to determine whether the intent is to accelerate and maintain speed or decelerate to a stop.  A PID controller for both the brakes and the throttle are created here and tuned on the simulator to provide approximately desireable results (limit jerk and high acceleration values).  The brake controller has two stages, one for high speed coming to a stop and one for stopped.  The first is effected when the throttle command is 0 and the vehicle is going faster than the set point.  The brake controller determines an appropriate torque to apply in order to hit the target speed.  When the vehicle achieves a "stopped state"  (vehicle speed < threshold and vehicle commanded speed is zero) the brake controller rolls in the torque gradually to hit 700N-m to overcome torque creep due to the automatic transmission's torque converter.
+
+### Challenges
+This project was a fascinating learning experience.  The largest challenges came from dealing with hardware limitations.  The hardware limitations imposed by our team member's laptops resulted in significant latency issues.  The typical Intel Core i5-7200U CPU@2.5GHz with 8 GB of RAM on a 64 bit Windows system was not powerful enough to run the project without latency.  Comparable Mac computer hardware resulted in the same performance.  Native Linux on similar hardware provided better results but did not solve the issues.  A GPU was used by one team member to test the system and it worked much better.  The workspace also had latency issues.
+
+These latency issues appear to be present when the camera is publshing images.  The amount of data being broadcast by the simulator is too much for our hardware.  The controller achitecture's ROS nodes can't process the inputs fast enough to effect proper control and the vehicle wanders off the track.  We spent a lot of time attempting to overcome these issues without moving to faster local hardware or AWS/Google Cloud based services.  
+Outside of recompiling the Simulator code, the server.py file appears to be furthest upstream we can effect change.  This handles the server side TCP/IP data coming in and calls the functions in bridge.py.  The bridge.py file takes the information and publishes the ROS messages.  The tl_detector node then takes in the image data and/or ground truth traffic light position/state signal as a ROS subscriber and decides how to process this information.  The images coming out of the simulator are effectively like drinking from a fire hose and we couldn't get our system to work in symphony as one without testing in chunks.  This leads to our recommendations:
+
+Recommendation #1:  Use the ground truth information in publish_traffic to test your dbw node controllers (brake, steering and throttle) as well as your waypoint updater node without turning on the camera in the simulator.  We did not use the image_cb function to effect this control as this would rely on the image_cb function being called when an image is available.  Therefore it is advisable to have a different method than described in the walkthrough videos for updating the stop waypoint index.
+
+Recommendation #2: Limit the number of images coming into your Python software.  If you want you can attempt to recompile the simulator but this may result in other issues.  We did not take this approach.  We use two approaches but then settled on one preferred method.  The first method was to skip images recieved by the subscriber in tl_detector.py, however this was not the furthest upstream we could effect.  in bridge.py we limited the number of images coming in and being published.  This reduces overhead by not converting an image from cv2 as well as publishing and subscribing.
+
+Recommendation #3: Unless you have a GPU similar to Carla, test your classifier in manual mode to ensure that you can print out the waypoint index that the vehicle will be targetting.
+
+Recommendation #4: Test piecewise to accomplish this project in a reasonable timeframe.  In an attempt to overcome the latency issues we spent about 60 hours attempting to refine the code, find efficiencies to overcome our latency issue, investigate Docker, bootable linux partitions, AWS instances (McAfee opening ports etc..).  In the end the best we could do was understand our system better and setup piecewise testing methods with logwarn messages.   Native Linux maybe the best with an AWS instance however you do not want to go with more power than Carla has as this would not yield the desireable results.
+
+Recommendation #5: Data collection in manual mode.  Collect and save images using manual mode driving or alternatively set your vehicle top throttle input to something incredibly small and walk away for an hour.
+
+Recommendation #6: Use .[labelImg](https://github.com/tzutalin/labelImg) for labelling your images with boxes.  We effectively trained our classifier with about 150 images of each color for the simulator and labelled all of the images provided in the Rosbag file.
+
+In summary this is examplary of the real world issue facing autonomous vehicles, artificial intelligence and real time systems.  Hardware limitations imposed by cost, size and availability are real, software needs to be matched to the hardware capabilities and attempting to do too much results in achieving very little.  The fastest, most efficient code needs to be implemented and high performing image classifiers with extended libraries of classification just aren't currently practical.
+
 
 ## Installation Options
 
