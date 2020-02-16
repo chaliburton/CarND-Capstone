@@ -95,7 +95,7 @@ class Controller(object):
 # until the waypoint is passed to adjust target angle  check this 
         brake = 0.0
     
-        if linear_vel == 0.0 and current_vel < 5.0:
+        if linear_vel < 0.4 and current_vel < 5.0:
             self.brake_controller.reset()
             self.throttle_controller.reset()
             throttle = 0.0
