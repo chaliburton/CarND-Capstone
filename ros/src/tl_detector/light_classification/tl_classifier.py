@@ -12,7 +12,7 @@ class TLClassifier(object):
         ## Load model weights site or simulator
         if is_site:
             rospy.loginfo("tl_classifier: Load model for site!")
-            weight_path = 'light_classification/ssd7_TL_epoch-03_weights_Carla.h5'
+            weight_path = 'light_classification/ssd7_TL_epoch-04_weights_Carla.h5'
         else:
             rospy.loginfo("tl_classifier: Load model for simulator!")
             weight_path = 'light_classification/ssd7_TL_epoch-03_weights_simulator.h5'
