@@ -1,6 +1,9 @@
-*.py[cod]
-
 build
 devel
 
 profile.tmp
+*.jpg
+*.jpeg
+*img.xml
+*.xml
+*.pyc

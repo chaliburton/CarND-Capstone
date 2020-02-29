@@ -3,7 +3,7 @@ import xml.etree.cElementTree as ET
 import glob
 
 # Path to xml file
-data_path = 'TrainData/Carla/'
+data_path = '../TrainData/Carla_rosbag/'
 
 # Path to csv file
 csv_path = data_path
