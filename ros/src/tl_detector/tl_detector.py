@@ -97,7 +97,6 @@ class TLDetector(object):
         Args:
             msg (Image): image from car-mounted camera
         """
-        #light_wp, state = self.process_traffic_lights()
         
     def get_closest_waypoint(self, x, y):
         """Identifies the closest path waypoint to the given position
@@ -149,7 +148,9 @@ class TLDetector(object):
 
         """
         closest_light = None
-        line_wp_idx = None
+        line_wp_idx = -1
+        state = TrafficLight.UNKNOWN
+
         stop_line_positions = self.config['stop_line_positions']
         #rospy.loginfo("tl_detector: process_traffic_lights()")
 
@@ -158,11 +159,11 @@ class TLDetector(object):
             if car_wp_idx == -1:
                 return -1, TrafficLight.UNKNOWN
 
-
-        #TODO find the closest visible traffic light (if one exists)
+            # find the closest visible traffic light (if one exists)
             if self.waypoints is None:
                 rospy.logwarn("tl_detector: Couldn't process traffic lights due to unavailability of waypoints")
                 return -1, TrafficLight.UNKNOWN
+            
             diff = len(self.waypoints.waypoints)*2
             for i, light in enumerate(self.lights):
                 # Get stop line waypoint index
@@ -183,14 +184,14 @@ class TLDetector(object):
             if self.state != state:
                 self.state_count = 0
                 self.state = state
-            elif self.state_count > STATE_COUNT_THRESHOLD:
+            elif self.state_count >= STATE_COUNT_THRESHOLD:
                 self.last_state = self.state
                 line_wp_idx = line_wp_idx if state == TrafficLight.RED else -1
                 self.last_wp = line_wp_idx
                 self.upcoming_red_light_pub.publish(Int32(line_wp_idx))
             else:
                 self.upcoming_red_light_pub.publish(Int32(self.last_wp))
-                self.state_count += 1  
+            self.state_count += 1  
 
             #rospy.logwarn("                                                               Stop Index is:{}".format(self.last_wp))
             return line_wp_idx, state
