@@ -24,7 +24,7 @@ class Controller(object):
         else:
             if ParamsConfig.isSite():
                 # running on Carla
-                mx = 0.2
+                mx = 0.18
             else:
                 # running in sumulator
                 mx = 0.2 # maximum throttle value
