@@ -165,6 +165,8 @@ class TLDetector(object):
                 return -1, TrafficLight.UNKNOWN
             
             diff = len(self.waypoints.waypoints)*2
+            rospy.logwarn("                                                               Car index: {}".format(car_wp_idx))
+
             for i, light in enumerate(self.lights):
                 # Get stop line waypoint index
                 line = stop_line_positions[i]
@@ -173,10 +175,12 @@ class TLDetector(object):
                 d = temp_wp_idx - car_wp_idx
                 #rospy.loginfo("tl_detector: Stoplight idx: {}, diff: {}".format(d, diff))
                 if d >= -2 and d < diff:
-                    diff = d
+                    #diff = d
                     closest_light = light
                     line_wp_idx = temp_wp_idx
                     self.dist = d
+            rospy.logwarn("                                                               Closest index: {}".format(line_wp_idx))
+
         if closest_light:
             state = self.get_light_state(closest_light)
             #rospy.logwarn("                                                               actual state raw: {} actual state filtered:{} count :{}".format(state, self.state, self.state_count))
