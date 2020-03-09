@@ -157,7 +157,7 @@ class TLDetector(object):
             if car_wp_idx == -1:
                 return -1, TrafficLight.UNKNOWN
 
-            rospy.logwarn("         Closest Waypoint is: {0}" .format(car_wp_idx))
+            #rospy.logwarn("         Closest Waypoint is: {0}" .format(car_wp_idx))
 
         #TODO find the closest visible traffic light (if one exists)
             if self.waypoints is None:
