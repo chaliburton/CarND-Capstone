@@ -13,8 +13,7 @@ import cv2
 from scipy.spatial import KDTree
 import yaml
 
-STATE_COUNT_THRESHOLD = 3
-#CAMERA_IMAGE_COUNT_THRESHOLD = 6
+STATE_COUNT_THRESHOLD = 1
 
 class TLDetector(object):
     def __init__(self):
@@ -97,6 +96,7 @@ class TLDetector(object):
         Args:
             msg (Image): image from car-mounted camera
         """
+        #light_wp, state = self.process_traffic_lights()
         
     def get_closest_waypoint(self, x, y):
         """Identifies the closest path waypoint to the given position
@@ -148,9 +148,7 @@ class TLDetector(object):
 
         """
         closest_light = None
-        line_wp_idx = -1
-        state = TrafficLight.UNKNOWN
-
+        line_wp_idx = None
         stop_line_positions = self.config['stop_line_positions']
         #rospy.loginfo("tl_detector: process_traffic_lights()")
 
@@ -159,14 +157,13 @@ class TLDetector(object):
             if car_wp_idx == -1:
                 return -1, TrafficLight.UNKNOWN
 
-            # find the closest visible traffic light (if one exists)
+            rospy.logwarn("         Closest Waypoint is: {0}" .format(car_wp_idx))
+
+        #TODO find the closest visible traffic light (if one exists)
             if self.waypoints is None:
                 rospy.logwarn("tl_detector: Couldn't process traffic lights due to unavailability of waypoints")
                 return -1, TrafficLight.UNKNOWN
-            
             diff = len(self.waypoints.waypoints)*2
-            rospy.logwarn("                                                               Car index: {}".format(car_wp_idx))
-
             for i, light in enumerate(self.lights):
                 # Get stop line waypoint index
                 line = stop_line_positions[i]
@@ -179,25 +176,27 @@ class TLDetector(object):
                     closest_light = light
                     line_wp_idx = temp_wp_idx
                     self.dist = d
-            rospy.logwarn("                                                               Closest index: {}".format(line_wp_idx))
+            #rospy.logwarn("         Closest Light Waypoint is: {0}" .format(line_wp_idx))
 
         if closest_light:
             state = self.get_light_state(closest_light)
-            #rospy.logwarn("                                                               actual state raw: {} actual state filtered:{} count :{}".format(state, self.state, self.state_count))
-
+            #rospy.logwarn("                                       actual state raw: {} previous state:{} count :{}".format(state, self.state, self.state_count))
+            #rospy.logwarn("   {}".format(state == TrafficLight.RED))
             if self.state != state:
                 self.state_count = 0
                 self.state = state
-            elif self.state_count >= STATE_COUNT_THRESHOLD:
+            if self.state_count >= STATE_COUNT_THRESHOLD:
                 self.last_state = self.state
-                line_wp_idx = line_wp_idx if state == TrafficLight.RED else -1
+                line_wp_idx = line_wp_idx if (state == TrafficLight.YELLOW or state == TrafficLight.RED) else -1
                 self.last_wp = line_wp_idx
                 self.upcoming_red_light_pub.publish(Int32(line_wp_idx))
+                #rospy.logwarn("                                                               A Stop Index is:{}".format(line_wp_idx))
+
             else:
                 self.upcoming_red_light_pub.publish(Int32(self.last_wp))
-            self.state_count += 1  
+                #rospy.logwarn("                                                               B Stop Index is:{}".format(self.last_wp))
+                self.state_count += 1  
 
-            #rospy.logwarn("                                                               Stop Index is:{}".format(self.last_wp))
             return line_wp_idx, state
         return -1, TrafficLight.UNKNOWN
 
