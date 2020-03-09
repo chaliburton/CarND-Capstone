@@ -172,7 +172,7 @@ class TLDetector(object):
                 d = temp_wp_idx - car_wp_idx
                 #rospy.loginfo("tl_detector: Stoplight idx: {}, diff: {}".format(d, diff))
                 if d >= -2 and d < diff:
-                    #diff = d
+                    diff = d
                     closest_light = light
                     line_wp_idx = temp_wp_idx
                     self.dist = d
